@@ -1,7 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const usuarioModel = require('./src/module/usuario/usuario.model')
+const usuarioModel = require('./src/module/usuario/usuario.model');
+const noticiaModel = require('./src/module/noticias/noticia.model');
 const app = express();
 app.use(express.json());
 
@@ -64,12 +65,39 @@ app.post('/usuarios', async (req, res) => {
     return res.status(201).json(usuario);
 });
 
-app.get('/noticias', (req, res) => {
-    return res.status(200).json([]);
+app.get('/noticias', async (req, res) => {
+    let filtroCategoria = {};
+    if (req.query.categoria) {
+        filtroCategoria = { categoria: req.query.categoria };
+        }
+
+    const noticias = await noticiaModel.find(filtroCategoria);
+    return res.status(200).json(noticias);
+     
+    
 });
 
-app.post('/noticias', (req, res) => {
-    return res.status(201).json([]);
+app.post('/noticias', async (req, res) => {
+    if (!req.body.titulo) {
+        return res.status(400).json({ message: 'O campo titulo é obrigatorio'})
+    }
+    if (!req.body.img) {
+        return res.status(400).json({ message: 'O campo imagem é obrigatorio'})
+    }
+    if (!req.body.texto) {
+        return res.status(400).json({ message: 'O campo texto é obrigatorio'})
+    }
+    if (!req.body.categoria) {
+        return res.status(400).json({ message: 'O campo categoria é obrigatorio'})
+    }
+
+    const noticia = await noticiaModel.create({
+        titulo: req.body.titulo,
+        img: req.body.img,
+        texto: req.body.texto,
+        categoria: req.body.categoria,
+    })
+    return res.status(201).json(noticia);
 });
 
 app.listen(8080, () => {
